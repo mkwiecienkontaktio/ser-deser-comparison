@@ -35,6 +35,7 @@ public class Runner implements CommandLineRunner {
         testData = buildTestData(iterationCount);
         warmup(testData);
         for(Map.Entry<String, ISerializerDeserializer<PacketEntity>> serde: serializerDeserializerMap.entrySet()) {
+            System.gc();
             StopWatch sw = new Slf4JStopWatch(LOG);
             List<byte[]> serialized = testData
                             .stream()
