@@ -1,5 +1,8 @@
 package pl.com.boono.entity;
 
+import org.msgpack.annotation.Message;
+
+@Message
 public class EventEntity {
     private Short rssi;
     private Short batteryLevel;

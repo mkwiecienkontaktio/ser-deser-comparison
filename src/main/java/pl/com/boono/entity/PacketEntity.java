@@ -1,7 +1,10 @@
 package pl.com.boono.entity;
 
+import org.msgpack.annotation.Message;
+
 import java.util.List;
 
+@Message
 public class PacketEntity {
     private SourceType sourceType;
     private String sourceId;
