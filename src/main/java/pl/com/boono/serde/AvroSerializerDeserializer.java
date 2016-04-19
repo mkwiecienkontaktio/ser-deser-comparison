@@ -3,8 +3,7 @@ package pl.com.boono.serde;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.file.SeekableByteArrayInput;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.springframework.context.annotation.Profile;
@@ -53,10 +52,9 @@ public class AvroSerializerDeserializer implements ISerializerDeserializer<Packe
                                             ee.getUniqueId())
                             ).collect(Collectors.toList()));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataFileWriter<Packet> dfw = new DataFileWriter<>(DATUM_WRITER);
-            dfw = dfw.create(packet.getSchema(), baos);
-            dfw.append(packet);
-            dfw.flush();
+            BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
+            DATUM_WRITER.write(packet, encoder);
+            encoder.flush();
             return baos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -65,8 +63,8 @@ public class AvroSerializerDeserializer implements ISerializerDeserializer<Packe
 
     @Override public PacketEntity deserialize(byte[] data) {
         try {
-            DataFileReader<Packet> dfr = new DataFileReader<>(new SeekableByteArrayInput(data), DATUM_READER);
-            Packet packet = dfr.next();
+            Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
+            Packet packet = DATUM_READER.read(null, decoder);
             PacketEntity pe = new PacketEntity();
             pe.setSourceType(pl.com.boono.entity.SourceType.valueOf(packet.getSourceType().name()));
             pe.setSourceId(packet.getSourceId().toString());
