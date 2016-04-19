@@ -1,0 +1,26 @@
+option java_package = "pl.com.boono.protobuf";
+message Packet {
+    enum SourceType {
+        CLOUD_BEACON = 0;
+        APPLICATION = 1;
+    }
+    required SourceType sourceType = 1;
+    required string sourceId = 2;
+    required int64 timestamp = 3;
+    required int32 contextHash = 4;
+    required string appId = 5;
+
+    message Event {
+        required int32 rssi = 1;
+        required int32 batteryLevel = 2;
+
+        enum EventType {
+            SCAN = 0;
+            MONITORING = 1;
+        }
+        required EventType type = 3;
+        required int64 timestamp = 4;
+        required string uniqueId = 5;
+    }
+    repeated Event event = 6;
+}

@@ -1,0 +1,75 @@
+[
+    {
+        "namespace": "pl.com.boono.avro",
+        "type": "enum",
+        "name": "EventType",
+        "symbols": ["SCAN", "MONITORING"]
+    },
+    {
+        "namespace": "pl.com.boono.avro",
+        "type": "record",
+        "name": "Event",
+        "fields": [
+            {
+                "name": "rssi",
+                "type": ["int", "null"]
+            },
+            {
+                "name": "batteryLevel",
+                "type": ["int", "null"]
+            },
+            {
+                "name": "type",
+                "type": "EventType"
+            },
+            {
+                "name": "timestamp",
+                "type": "long"
+            },
+            {
+                "name": "uniqueId",
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "namespace": "pl.com.boono.avro",
+        "type": "enum",
+        "name": "SourceType",
+        "symbols": ["APPLICATION", "CLOUD_BEACON"]
+    },
+    {
+        "namespace": "pl.com.boono.avro",
+        "type": "record",
+        "name": "Packet",
+        "fields": [
+            {
+                "name": "sourceType",
+                "type": "SourceType"
+            },
+            {
+                "name": "sourceId",
+                "type": "string"
+            },
+            {
+                "name": "timestamp",
+                "type": "long"
+            },
+            {
+                "name": "contextHash",
+                "type": "int"
+            },
+            {
+                "name": "appId",
+                "type": "string"
+            },
+            {
+                "name": "events",
+                "type": {
+                    "type": "array",
+                    "items": "Event"
+                }
+            }
+        ]
+    }
+]
