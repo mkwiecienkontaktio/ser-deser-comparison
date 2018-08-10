@@ -1,34 +1,27 @@
 package pl.com.boono.serde;
 
-import org.apache.avro.file.DataFileReader;
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.file.SeekableByteArrayInput;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import pl.com.boono.ISerializerDeserializer;
 import pl.com.boono.avro.Event;
 import pl.com.boono.avro.EventType;
 import pl.com.boono.avro.Packet;
 import pl.com.boono.avro.SourceType;
-import pl.com.boono.entity.EventEntity;
-import pl.com.boono.entity.PacketEntity;
+import pl.com.boono.model.EventModel;
+import pl.com.boono.model.PacketModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-@Component
-@Profile("!noavro")
-public class AvroSerializerDeserializer implements ISerializerDeserializer<PacketEntity> {
+public class AvroSerializerDeserializer implements ISerializerDeserializer<PacketModel> {
     DatumWriter<Packet> DATUM_WRITER = new SpecificDatumWriter<>(Packet.getClassSchema());
     DatumReader<Packet> DATUM_READER = new SpecificDatumReader<>(Packet.getClassSchema());
 
-    private EventEntity deserializeEvent(Event event) {
-        EventEntity ee = new EventEntity();
-        ee.setType(pl.com.boono.entity.EventType.valueOf(event.getType().name()));
+    private EventModel deserializeEvent(Event event) {
+        EventModel ee = new EventModel();
+        ee.setType(pl.com.boono.model.EventType.valueOf(event.getType().name()));
         ee.setUniqueId(event.getUniqueId().toString());
         ee.setRssi(event.getRssi().shortValue());
         ee.setBatteryLevel(event.getBatteryLevel().shortValue());
@@ -36,7 +29,7 @@ public class AvroSerializerDeserializer implements ISerializerDeserializer<Packe
         return ee;
     }
 
-    @Override public byte[] serialize(PacketEntity obj) {
+    @Override public byte[] serialize(PacketModel obj) {
         try {
             Packet packet = new Packet(
                             SourceType.valueOf(obj.getSourceType().name()),
@@ -61,12 +54,12 @@ public class AvroSerializerDeserializer implements ISerializerDeserializer<Packe
         }
     }
 
-    @Override public PacketEntity deserialize(byte[] data) {
+    @Override public PacketModel deserialize(byte[] data) {
         try {
             Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
             Packet packet = DATUM_READER.read(null, decoder);
-            PacketEntity pe = new PacketEntity();
-            pe.setSourceType(pl.com.boono.entity.SourceType.valueOf(packet.getSourceType().name()));
+            PacketModel pe = new PacketModel();
+            pe.setSourceType(pl.com.boono.model.SourceType.valueOf(packet.getSourceType().name()));
             pe.setSourceId(packet.getSourceId().toString());
             pe.setTimestamp(packet.getTimestamp());
             pe.setAppId(packet.getAppId().toString());

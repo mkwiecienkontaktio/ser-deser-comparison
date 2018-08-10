@@ -4,19 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.undercouch.bson4jackson.BsonFactory;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import pl.com.boono.ISerializerDeserializer;
-import pl.com.boono.entity.PacketEntity;
+import pl.com.boono.model.PacketModel;
 
 import java.io.IOException;
 
-@Component
-@Profile("!nobson")
-public class BSONSerializerDeserializer implements ISerializerDeserializer<PacketEntity> {
-    private static final TypeReference<PacketEntity> REFERENCE = new TypeReference<PacketEntity>() {};
+public class BSONSerializerDeserializer implements ISerializerDeserializer<PacketModel> {
+    private static final TypeReference<PacketModel> REFERENCE = new TypeReference<PacketModel>() {
+    };
     private static final ObjectMapper MAPPER = new ObjectMapper(new BsonFactory());
-    @Override public byte[] serialize(PacketEntity obj) {
+
+    @Override
+    public byte[] serialize(PacketModel obj) {
         try {
             return MAPPER.writeValueAsBytes(obj);
         } catch (JsonProcessingException e) {
@@ -24,7 +23,8 @@ public class BSONSerializerDeserializer implements ISerializerDeserializer<Packe
         }
     }
 
-    @Override public PacketEntity deserialize(byte[] data) {
+    @Override
+    public PacketModel deserialize(byte[] data) {
         try {
             return MAPPER.readValue(data, REFERENCE);
         } catch (IOException e) {

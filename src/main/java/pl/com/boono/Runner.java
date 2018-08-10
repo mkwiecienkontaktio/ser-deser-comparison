@@ -5,36 +5,34 @@ import org.perf4j.StopWatch;
 import org.perf4j.slf4j.Slf4JStopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-import pl.com.boono.entity.EventEntity;
-import pl.com.boono.entity.EventType;
-import pl.com.boono.entity.PacketEntity;
-import pl.com.boono.entity.SourceType;
+import pl.com.boono.model.EventModel;
+import pl.com.boono.model.EventType;
+import pl.com.boono.model.PacketModel;
+import pl.com.boono.model.SourceType;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
-public class Runner implements CommandLineRunner {
+public class Runner {
     private static final Logger LOG = LoggerFactory.getLogger(Runner.class);
     private static final Random RAND = new Random(new Date().getTime());
 
-    @Autowired
-    private Map<String, ISerializerDeserializer<PacketEntity>> serializerDeserializerMap;
+    private List<PacketModel> testData;
 
-    private List<PacketEntity> testData;
+    private final Map<String, ISerializerDeserializer<PacketModel>> serializerDeserializerMap;
 
-    @Override public void run(String... strings) throws Exception {
-        int iterationCount = Integer.parseInt(strings[0]);
+    public Runner(Map<String, ISerializerDeserializer<PacketModel>> serializerDeserializerMap) {
+        this.serializerDeserializerMap = serializerDeserializerMap;
+    }
+
+    public void run(int iterationCount) throws Exception {
         if(iterationCount < 1000) {
             throw new IllegalArgumentException("Iteration count cannot be less than 1k");
         }
 
         testData = buildTestData(iterationCount);
         warmup(testData);
-        for(Map.Entry<String, ISerializerDeserializer<PacketEntity>> serde: serializerDeserializerMap.entrySet()) {
+        for(Map.Entry<String, ISerializerDeserializer<PacketModel>> serde: serializerDeserializerMap.entrySet()) {
             System.gc();
             StopWatch sw = new Slf4JStopWatch(LOG);
             List<byte[]> serialized = testData
@@ -44,7 +42,7 @@ public class Runner implements CommandLineRunner {
             sw.stop("Serialize using " + serde.getKey());
             LOG.info("Bytes after serialization: " + humanReadableByteCount(serialized.stream().mapToInt(a -> a.length).sum(), false));
             StopWatch sw2 = new Slf4JStopWatch(LOG);
-            List<PacketEntity> deserialized = serialized
+            List<PacketModel> deserialized = serialized
                             .stream()
                             .map(serde.getValue()::deserialize)
                             .collect(Collectors.toList());
@@ -53,19 +51,19 @@ public class Runner implements CommandLineRunner {
         }
     }
 
-    private void warmup(List<PacketEntity> testData) {
+    private void warmup(List<PacketModel> testData) {
         StopWatch warmup = new Slf4JStopWatch(LOG);
         int thousanthOfSize = testData.size() / 1000;
-        List<PacketEntity> shortTestData = testData
+        List<PacketModel> shortTestData = testData
                         .stream()
                         .limit(thousanthOfSize)
                         .collect(Collectors.toList());
-        for(Map.Entry<String, ISerializerDeserializer<PacketEntity>> serde: serializerDeserializerMap.entrySet()) {
+        for(Map.Entry<String, ISerializerDeserializer<PacketModel>> serde: serializerDeserializerMap.entrySet()) {
             List<byte[]> ser = shortTestData
                             .stream()
                             .map(serde.getValue()::serialize)
                             .collect(Collectors.toList());
-            List<PacketEntity> deser = ser
+            List<PacketModel> deser = ser
                             .stream()
                             .map(serde.getValue()::deserialize)
                             .collect(Collectors.toList());
@@ -74,10 +72,10 @@ public class Runner implements CommandLineRunner {
         warmup.stop("Warmup");
     }
 
-    private List<PacketEntity> buildTestData(int iterationCount) {
-        List<PacketEntity> lst = new ArrayList<>();
+    private List<PacketModel> buildTestData(int iterationCount) {
+        List<PacketModel> lst = new ArrayList<>();
         for(int i = 0; i < iterationCount; i++) {
-            PacketEntity pe = new PacketEntity();
+            PacketModel pe = new PacketModel();
             pe.setEvents(buildTestEvents());
             pe.setContextHash(RAND.nextInt());
             pe.setTimestamp(new Date().getTime());
@@ -89,10 +87,10 @@ public class Runner implements CommandLineRunner {
         return lst;
     }
 
-    private List<EventEntity> buildTestEvents() {
-        List<EventEntity> lst = new ArrayList<>();
+    private List<EventModel> buildTestEvents() {
+        List<EventModel> lst = new ArrayList<>();
         for(int i = 0; i < 5; i++) {
-            EventEntity ee = new EventEntity();
+            EventModel ee = new EventModel();
             ee.setTimestamp(new Date().getTime());
             ee.setUniqueId(RandomStringUtils.random(4, true, true));
             ee.setBatteryLevel((short) RAND.nextInt(100));

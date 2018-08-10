@@ -3,20 +3,18 @@ package pl.com.boono.serde;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import pl.com.boono.ISerializerDeserializer;
-import pl.com.boono.entity.PacketEntity;
+import pl.com.boono.model.PacketModel;
 
 import java.io.IOException;
 
-@Component
-@Profile("!nojackson")
-public class JacksonSerializerDeserializer implements ISerializerDeserializer<PacketEntity> {
+public class JacksonSerializerDeserializer implements ISerializerDeserializer<PacketModel> {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeReference<PacketEntity> REFERENCE = new TypeReference<PacketEntity>() {};
+    private static final TypeReference<PacketModel> REFERENCE = new TypeReference<PacketModel>() {
+    };
 
-    @Override public byte[] serialize(PacketEntity obj) {
+    @Override
+    public byte[] serialize(PacketModel obj) {
         try {
             return MAPPER.writeValueAsBytes(obj);
         } catch (JsonProcessingException e) {
@@ -24,7 +22,8 @@ public class JacksonSerializerDeserializer implements ISerializerDeserializer<Pa
         }
     }
 
-    @Override public PacketEntity deserialize(byte[] data) {
+    @Override
+    public PacketModel deserialize(byte[] data) {
         try {
             return MAPPER.readValue(data, REFERENCE);
         } catch (IOException e) {
