@@ -11,8 +11,7 @@ import pl.com.boono.model.EventModel;
 import pl.com.boono.model.EventType;
 import pl.com.boono.model.PacketModel;
 import pl.com.boono.model.SourceType;
-import pl.com.boono.serde.JacksonSerializerDeserializer;
-import pl.com.boono.serde.ProtobufSerializerDeserializer;
+import pl.com.boono.serde.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +27,7 @@ public class JmhRunner {
                 .warmupIterations(10)
                 .measurementIterations(10)
                 .jvmArgs("-server")
-                .forks(1)
+                .forks(2)
                 .warmupForks(1)
                 .resultFormat(ResultFormatType.TEXT)
                 .build();
@@ -43,8 +42,16 @@ public class JmhRunner {
         public PacketModel packet;
         public byte[] jacksonSerializedPacket;
         public byte[] protobufSerializedPacket;
+        public byte[] avroSerializedPacket;
+        public byte[] bsonSerializedPacket;
+        public byte[] messagepackSerializedPacket;
+        public byte[] protostuffSerializedPacket;
         public ISerializerDeserializer<PacketModel> jackson = new JacksonSerializerDeserializer();
         public ISerializerDeserializer<PacketModel> protobuf = new ProtobufSerializerDeserializer();
+        public ISerializerDeserializer<PacketModel> avro = new AvroSerializerDeserializer();
+        public ISerializerDeserializer<PacketModel> bson = new BSONSerializerDeserializer();
+        public ISerializerDeserializer<PacketModel> messagepack = new MessagePackSerializerDeserializer();
+        public ISerializerDeserializer<PacketModel> protostuff = new ProtostuffSerializerDeserializer();
 
         @Setup(Level.Iteration)
         public void buildTestPackets() {
@@ -57,6 +64,10 @@ public class JmhRunner {
             packet.setSourceType(SourceType.APPLICATION);
             jacksonSerializedPacket = jackson.serialize(packet);
             protobufSerializedPacket = protobuf.serialize(packet);
+            avroSerializedPacket = avro.serialize(packet);
+            bsonSerializedPacket = bson.serialize(packet);
+            messagepackSerializedPacket = messagepack.serialize(packet);
+            protostuffSerializedPacket = protostuff.serialize(packet);
         }
 
         private List<EventModel> buildTestEvents() {
@@ -96,5 +107,53 @@ public class JmhRunner {
     @BenchmarkMode(Mode.Throughput)
     public PacketModel protobufDeserialize(BenchmarkState state) {
         return state.protobuf.deserialize(state.protobufSerializedPacket);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public byte[] avroSerialize(BenchmarkState state) {
+        return state.avro.serialize(state.packet);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public PacketModel avroDeserialize(BenchmarkState state) {
+        return state.avro.deserialize(state.avroSerializedPacket);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public byte[] bsonSerialize(BenchmarkState state) {
+        return state.bson.serialize(state.packet);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public PacketModel bsonDeserialize(BenchmarkState state) {
+        return state.bson.deserialize(state.bsonSerializedPacket);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public byte[] messagePackSerialize(BenchmarkState state) {
+        return state.messagepack.serialize(state.packet);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public PacketModel messagePackDeserialize(BenchmarkState state) {
+        return state.messagepack.deserialize(state.messagepackSerializedPacket);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public byte[] protostuffSerialize(BenchmarkState state) {
+        return state.protostuff.serialize(state.packet);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public PacketModel protostuffDeserialize(BenchmarkState state) {
+        return state.protostuff.deserialize(state.protostuffSerializedPacket);
     }
 }
